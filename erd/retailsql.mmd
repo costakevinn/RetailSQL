@@ -1,0 +1,47 @@
+erDiagram
+    STORE ||--o{ SALES_ORDER : places
+    SALES_ORDER ||--o{ SALES_ORDER_ITEM : contains
+    PRODUCT ||--o{ SALES_ORDER_ITEM : sold_as
+    STORE ||--o{ INVENTORY_SNAPSHOT : has
+    PRODUCT ||--o{ INVENTORY_SNAPSHOT : tracked_in
+
+    STORE {
+        bigint store_id PK
+        string store_code UK "Business identifier (UNIQUE)"
+        string name "Store display name"
+        string city "Nullable"
+        string state "Nullable"
+    }
+
+    PRODUCT {
+        bigint product_id PK
+        string sku UK "Stock Keeping Unit (UNIQUE)"
+        string name "Product name"
+        string category "Nullable (MVP)"
+        numeric list_price "numeric(12,2); >= 0"
+    }
+
+    SALES_ORDER {
+        bigint sales_order_id PK
+        bigint store_id FK
+        timestamptz ordered_at "NOT NULL"
+        string order_status "Nullable (e.g., completed, canceled)"
+    }
+
+    SALES_ORDER_ITEM {
+        bigint sales_order_item_id PK
+        bigint sales_order_id FK
+        bigint product_id FK
+        int quantity "> 0"
+        numeric unit_price "numeric(12,2); >= 0"
+        numeric discount_amount "Nullable; >= 0 if present"
+    }
+
+    INVENTORY_SNAPSHOT {
+        bigint inventory_snapshot_id PK
+        date snapshot_date "NOT NULL"
+        bigint store_id FK
+        bigint product_id FK
+        int on_hand ">= 0"
+        string __note "UNIQUE(snapshot_date, store_id, product_id)"
+    }

@@ -1,0 +1,136 @@
+Pager usage is off.
+Timing is off.
+--- Q1) Tables in schema retailsql ---
+ table_schema |     table_name     
+--------------+--------------------
+ retailsql    | inventory_snapshot
+ retailsql    | product
+ retailsql    | sales_order
+ retailsql    | sales_order_item
+ retailsql    | store
+(5 rows)
+
+--- Q2) Row counts ---
+     table_name     | row_count 
+--------------------+-----------
+ store              |         2
+ product            |         4
+ sales_order        |         2
+ sales_order_item   |         3
+ inventory_snapshot |         8
+(5 rows)
+
+--- Q3) Foreign keys ---
+     table_name     |  column_name   | referenced_table | referenced_column |         constraint_name         
+--------------------+----------------+------------------+-------------------+---------------------------------
+ inventory_snapshot | product_id     | product          | product_id        | fk_inventory_snapshot_product
+ inventory_snapshot | store_id       | store            | store_id          | fk_inventory_snapshot_store
+ sales_order        | store_id       | store            | store_id          | fk_sales_order_store
+ sales_order_item   | product_id     | product          | product_id        | fk_sales_order_item_product
+ sales_order_item   | sales_order_id | sales_order      | sales_order_id    | fk_sales_order_item_sales_order
+(5 rows)
+
+--- Q4) Constraints ---
+ schema_name |     table_name     |              constraint_name               |                                definition                                
+-------------+--------------------+--------------------------------------------+--------------------------------------------------------------------------
+ retailsql   | inventory_snapshot | ck_inventory_snapshot_on_hand_nonnegative  | CHECK ((on_hand >= 0))
+ retailsql   | inventory_snapshot | fk_inventory_snapshot_product              | FOREIGN KEY (product_id) REFERENCES product(product_id)
+ retailsql   | inventory_snapshot | fk_inventory_snapshot_store                | FOREIGN KEY (store_id) REFERENCES store(store_id)
+ retailsql   | inventory_snapshot | inventory_snapshot_pkey                    | PRIMARY KEY (inventory_snapshot_id)
+ retailsql   | inventory_snapshot | uq_inventory_snapshot_date_store_product   | UNIQUE (snapshot_date, store_id, product_id)
+ retailsql   | product            | ck_product_list_price_nonnegative          | CHECK ((list_price >= (0)::numeric))
+ retailsql   | product            | product_pkey                               | PRIMARY KEY (product_id)
+ retailsql   | product            | uq_product_sku                             | UNIQUE (sku)
+ retailsql   | sales_order        | fk_sales_order_store                       | FOREIGN KEY (store_id) REFERENCES store(store_id)
+ retailsql   | sales_order        | sales_order_pkey                           | PRIMARY KEY (sales_order_id)
+ retailsql   | sales_order_item   | ck_sales_order_item_discount_nonnegative   | CHECK (((discount_amount IS NULL) OR (discount_amount >= (0)::numeric)))
+ retailsql   | sales_order_item   | ck_sales_order_item_quantity_positive      | CHECK ((quantity > 0))
+ retailsql   | sales_order_item   | ck_sales_order_item_unit_price_nonnegative | CHECK ((unit_price >= (0)::numeric))
+ retailsql   | sales_order_item   | fk_sales_order_item_product                | FOREIGN KEY (product_id) REFERENCES product(product_id)
+ retailsql   | sales_order_item   | fk_sales_order_item_sales_order            | FOREIGN KEY (sales_order_id) REFERENCES sales_order(sales_order_id)
+ retailsql   | sales_order_item   | sales_order_item_pkey                      | PRIMARY KEY (sales_order_item_id)
+ retailsql   | sales_order_item   | uq_sales_order_item_order_product          | UNIQUE (sales_order_id, product_id)
+ retailsql   | store              | store_pkey                                 | PRIMARY KEY (store_id)
+ retailsql   | store              | uq_store_store_code                        | UNIQUE (store_code)
+(19 rows)
+
+--- Q5) Indexes ---
+ schemaname |     tablename      |                indexname                 |                                                                    indexdef                                                                    
+------------+--------------------+------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------
+ retailsql  | inventory_snapshot | idx_inventory_snapshot_product_id        | CREATE INDEX idx_inventory_snapshot_product_id ON retailsql.inventory_snapshot USING btree (product_id)
+ retailsql  | inventory_snapshot | idx_inventory_snapshot_snapshot_date     | CREATE INDEX idx_inventory_snapshot_snapshot_date ON retailsql.inventory_snapshot USING btree (snapshot_date)
+ retailsql  | inventory_snapshot | idx_inventory_snapshot_store_id          | CREATE INDEX idx_inventory_snapshot_store_id ON retailsql.inventory_snapshot USING btree (store_id)
+ retailsql  | inventory_snapshot | inventory_snapshot_pkey                  | CREATE UNIQUE INDEX inventory_snapshot_pkey ON retailsql.inventory_snapshot USING btree (inventory_snapshot_id)
+ retailsql  | inventory_snapshot | uq_inventory_snapshot_date_store_product | CREATE UNIQUE INDEX uq_inventory_snapshot_date_store_product ON retailsql.inventory_snapshot USING btree (snapshot_date, store_id, product_id)
+ retailsql  | product            | product_pkey                             | CREATE UNIQUE INDEX product_pkey ON retailsql.product USING btree (product_id)
+ retailsql  | product            | uq_product_sku                           | CREATE UNIQUE INDEX uq_product_sku ON retailsql.product USING btree (sku)
+ retailsql  | sales_order        | idx_sales_order_ordered_at               | CREATE INDEX idx_sales_order_ordered_at ON retailsql.sales_order USING btree (ordered_at)
+ retailsql  | sales_order        | idx_sales_order_store_id                 | CREATE INDEX idx_sales_order_store_id ON retailsql.sales_order USING btree (store_id)
+ retailsql  | sales_order        | sales_order_pkey                         | CREATE UNIQUE INDEX sales_order_pkey ON retailsql.sales_order USING btree (sales_order_id)
+ retailsql  | sales_order_item   | idx_sales_order_item_product_id          | CREATE INDEX idx_sales_order_item_product_id ON retailsql.sales_order_item USING btree (product_id)
+ retailsql  | sales_order_item   | idx_sales_order_item_sales_order_id      | CREATE INDEX idx_sales_order_item_sales_order_id ON retailsql.sales_order_item USING btree (sales_order_id)
+ retailsql  | sales_order_item   | sales_order_item_pkey                    | CREATE UNIQUE INDEX sales_order_item_pkey ON retailsql.sales_order_item USING btree (sales_order_item_id)
+ retailsql  | sales_order_item   | uq_sales_order_item_order_product        | CREATE UNIQUE INDEX uq_sales_order_item_order_product ON retailsql.sales_order_item USING btree (sales_order_id, product_id)
+ retailsql  | store              | store_pkey                               | CREATE UNIQUE INDEX store_pkey ON retailsql.store USING btree (store_id)
+ retailsql  | store              | uq_store_store_code                      | CREATE UNIQUE INDEX uq_store_store_code ON retailsql.store USING btree (store_code)
+(16 rows)
+
+--- Q6) Sample rows: store ---
+ store_id | store_code |        name        |      city      | state 
+----------+------------+--------------------+----------------+-------
+        1 | S001       | RetailSQL Downtown | Sao Paulo      | SP
+        2 | S002       | RetailSQL Mall     | Rio de Janeiro | RJ
+(2 rows)
+
+--- Q6) Sample rows: product ---
+ product_id |   sku    |       name       |  category   | list_price 
+------------+----------+------------------+-------------+------------
+          1 | SKU-1001 | Coffee Beans 1kg | Grocery     |      79.90
+          2 | SKU-1002 | Oat Milk 1L      | Grocery     |      12.50
+          3 | SKU-2001 | Wireless Mouse   | Electronics |      89.90
+          4 | SKU-3001 | Notebook A5      | Stationery  |      14.90
+(4 rows)
+
+--- Q6) Sample rows: sales_order ---
+ sales_order_id | store_id |       ordered_at       | order_status 
+----------------+----------+------------------------+--------------
+              1 |        1 | 2026-01-05 13:30:00+00 | completed
+              2 |        2 | 2026-01-06 21:45:00+00 | completed
+(2 rows)
+
+--- Q6) Sample rows: sales_order_item ---
+ sales_order_item_id | sales_order_id | product_id | quantity | unit_price | discount_amount 
+---------------------+----------------+------------+----------+------------+-----------------
+                   1 |              1 |          1 |        2 |      79.90 |            0.00
+                   2 |              1 |          4 |        1 |      14.90 |            5.00
+                   3 |              2 |          3 |        1 |      89.90 |            0.00
+(3 rows)
+
+--- Q6) Sample rows: inventory_snapshot (LIMIT 10) ---
+ inventory_snapshot_id | snapshot_date | store_id | product_id | on_hand 
+-----------------------+---------------+----------+------------+---------
+                     1 | 2026-01-07    |        1 |          1 |     100
+                     3 | 2026-01-07    |        1 |          2 |     100
+                     5 | 2026-01-07    |        1 |          3 |     100
+                     7 | 2026-01-07    |        1 |          4 |     100
+                     2 | 2026-01-07    |        2 |          1 |     100
+                     4 | 2026-01-07    |        2 |          2 |     100
+                     6 | 2026-01-07    |        2 |          3 |     100
+                     8 | 2026-01-07    |        2 |          4 |     100
+(8 rows)
+
+--- Q7) Join validation ---
+ sales_order_id | store_code |       ordered_at       | order_status |   sku    | quantity | unit_price | discount_amount 
+----------------+------------+------------------------+--------------+----------+----------+------------+-----------------
+              1 | S001       | 2026-01-05 13:30:00+00 | completed    | SKU-1001 |        2 |      79.90 |            0.00
+              1 | S001       | 2026-01-05 13:30:00+00 | completed    | SKU-3001 |        1 |      14.90 |            5.00
+              2 | S002       | 2026-01-06 21:45:00+00 | completed    | SKU-2001 |        1 |      89.90 |            0.00
+(3 rows)
+
+--- Q8) Computed totals: net revenue by store (completed orders) ---
+ store_code | net_revenue 
+------------+-------------
+ S001       |      169.70
+ S002       |       89.90
+(2 rows)
+
