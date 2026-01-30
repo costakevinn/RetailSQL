@@ -136,7 +136,6 @@ RetailSQL demonstrates the ability to:
 This is the type of data layer expected in environments where **data correctness directly impacts models, metrics, and decisions**.
 
 ---
----
 
 ## License
 
