@@ -1,10 +1,3 @@
-Perfeito, entendi exatamente o *vibe* 👍
-Vamos alinhar o **RetailSQL README** no **mesmo estilo do GPredict**: direto, técnico, escaneável, com headings curtos, listas claras e exemplos concretos — **produto de engenharia**, não relatório.
-
-Abaixo está o **README FINAL em Markdown**, pronto para GitHub, ATS-friendly, e coerente com tudo que você já construiu.
-
----
-
 # RetailSQL — Relational Data Platform
 
 RetailSQL is a **relational data platform** designed to model and enforce **core retail business processes** such as **sales transactions**, **product catalog**, **store operations**, and **inventory tracking**.
