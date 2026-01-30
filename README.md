@@ -1,102 +1,68 @@
-# RetailSQL — Relational Data Platform (PostgreSQL)
+Perfeito, entendi exatamente o *vibe* 👍
+Vamos alinhar o **RetailSQL README** no **mesmo estilo do GPredict**: direto, técnico, escaneável, com headings curtos, listas claras e exemplos concretos — **produto de engenharia**, não relatório.
 
-RetailSQL is a **production-oriented relational data platform** designed to model and enforce core retail business processes such as **sales transactions, product catalog, store operations, and inventory tracking**.
-
-The project focuses on **data modeling, integrity, and correctness**, treating the database as a **core system component**, not an analytical artifact.
-
----
-
-## What This Product Solves
-
-RetailSQL provides a **clean, normalized transactional data layer** that:
-
-* Encodes **business rules directly in the database**
-* Guarantees **referential and domain integrity**
-* Avoids redundant or derived data
-* Serves as a reliable foundation for analytics and ML systems
-
-The scope is intentionally **structural**, not analytical.
+Abaixo está o **README FINAL em Markdown**, pronto para GitHub, ATS-friendly, e coerente com tudo que você já construiu.
 
 ---
 
-## Data Modeling Approach
+# RetailSQL — Relational Data Platform
 
-The model was developed using a layered methodology commonly applied in production systems:
+RetailSQL is a **relational data platform** designed to model and enforce **core retail business processes** such as **sales transactions**, **product catalog**, **store operations**, and **inventory tracking**.
 
-1. Business rules definition
-2. Conceptual modeling (entities and relationships)
-3. Logical modeling (attributes, keys, constraints)
-4. Physical implementation (PostgreSQL)
-
-This separation ensures that **business semantics remain stable** even as physical implementation evolves.
+The project focuses on **data modeling**, **integrity enforcement**, and **relational correctness**, treating the database as a **first-class system component** rather than an analytical artifact.
 
 ---
 
-## Entity–Relationship Model
+## Core Data Model
 
-The core domain is represented by the following entities:
+RetailSQL models retail operations through a **normalized relational schema** composed of:
 
 * **STORE** — physical retail locations
 * **PRODUCT** — product catalog
 * **SALES_ORDER** — transactional sales events
-* **SALES_ORDER_ITEM** — line-level order details
-* **INVENTORY_SNAPSHOT** — point-in-time inventory state
+* **SALES_ORDER_ITEM** — line-level sales details
+* **INVENTORY_SNAPSHOT** — point-in-time inventory states
+
+All relationships are explicitly defined, with no redundant or derived attributes.
 
 ![RetailSQL ERD](./erd/erd.jpeg)
 
-All many-to-many relationships are resolved explicitly, and the model adheres to standard normalization practices.
+---
+
+## Business Rules at the Data Layer
+
+RetailSQL encodes business rules **directly in the database**, ensuring that invalid states cannot be persisted.
+
+Examples include:
+
+* Quantities must be strictly positive
+* Monetary values must be non-negative
+* A product cannot appear more than once in the same sales order
+* Inventory snapshots are unique per *(date, store, product)*
+* All transactional records require valid references
+
+These rules are enforced via **PRIMARY KEY**, **FOREIGN KEY**, **UNIQUE**, and **CHECK** constraints.
 
 ---
 
-## Physical Structure (PostgreSQL)
+## Relational Integrity
 
-The physical model is implemented with clear separation of responsibilities:
+The model guarantees consistent relationships across entities:
 
-* **Tables & primary keys** (`schema.sql`)
-* **Business rules & referential integrity** (`constraints.sql`)
-* **Indexing strategy** (`indexes.sql`)
-* **Deterministic seed data** (`seed.sql`)
-* **Inspection queries** (`queries.sql`)
-
-This structure mirrors how relational databases are maintained in real systems.
-
----
-
-## Business Rules at the Database Level
-
-Examples of enforced rules include:
-
-* Positive quantities and non-negative monetary values
-* Unique products per sales order
-* One inventory snapshot per *(date, store, product)*
-* Mandatory relationships between orders, products, and stores
-
-These constraints ensure that **invalid states cannot be stored**, independent of application logic.
-
----
-
-## Model Validation (Selected Outputs)
-
-### Schema Objects
-
-```text
-retailsql | inventory_snapshot
-retailsql | product
-retailsql | sales_order
-retailsql | sales_order_item
-retailsql | store
+```
+SALES_ORDER_ITEM → SALES_ORDER → STORE
+SALES_ORDER_ITEM → PRODUCT
+INVENTORY_SNAPSHOT → STORE
+INVENTORY_SNAPSHOT → PRODUCT
 ```
 
-### Referential Integrity
+This structure supports reliable joins and downstream data consumption.
 
-```text
-sales_order_item → sales_order → store
-sales_order_item → product
-inventory_snapshot → store
-inventory_snapshot → product
-```
+---
 
-### Sample Relational Join
+## Example: Relational Join
+
+A typical multi-entity join across the transactional model:
 
 ```text
 sales_order_id | store_code | sku      | quantity
@@ -106,11 +72,45 @@ sales_order_id | store_code | sku      | quantity
 2              | S002       | SKU-2001 | 1
 ```
 
-Full inspection results are available in `docs/sample_output.txt`.
+This confirms that the schema supports **unambiguous joins** without duplication or data leakage.
 
 ---
 
-## Project Structure
+## Example: Inventory Snapshot
+
+Point-in-time inventory state per store and product:
+
+```text
+snapshot_date | store_id | product_id | on_hand
+--------------+----------+------------+---------
+2026-01-07    | 1        | 1          | 100
+2026-01-07    | 2        | 3          | 100
+```
+
+Inventory is modeled as **state**, not as transactional movement.
+
+---
+
+## Verification Queries
+
+RetailSQL includes a set of inspection queries to validate:
+
+* Existing tables and schema objects
+* Row counts after seeding
+* Foreign key relationships
+* Constraints per table
+* Index definitions
+* Sample data consistency
+
+Full outputs are available in:
+
+```
+docs/sample_output.txt
+```
+
+---
+
+## Physical Structure
 
 ```text
 RetailSQL/
@@ -118,14 +118,16 @@ RetailSQL/
 │   ├── retailsql.mmd
 │   └── erd.jpeg
 ├── sql/
-│   ├── schema.sql
-│   ├── constraints.sql
-│   ├── indexes.sql
-│   ├── seed.sql
-│   └── queries.sql
+│   ├── schema.sql        # Tables and primary keys
+│   ├── constraints.sql  # Business rules & integrity
+│   ├── indexes.sql      # Physical indexing strategy
+│   ├── seed.sql         # Deterministic sample data
+│   └── queries.sql      # Inspection & validation
 └── docs/
     └── sample_output.txt
 ```
+
+Each SQL layer has a single responsibility, mirroring production database practices.
 
 ---
 
@@ -133,9 +135,16 @@ RetailSQL/
 
 RetailSQL demonstrates the ability to:
 
-* Translate **business rules into enforceable data models**
-* Design **normalized relational schemas**
-* Think in terms of **data foundations**, not just queries
-* Build database structures that safely support **analytics and machine learning pipelines**
+* Translate **business requirements into relational structures**
+* Design **normalized schemas** aligned with real systems
+* Enforce **data quality at the storage layer**
+* Build **foundational data platforms** suitable for analytics and machine learning pipelines
 
-This is the kind of data layer expected in production environments where **data quality directly impacts downstream models and decisions**.
+This is the type of data layer expected in environments where **data correctness directly impacts models, metrics, and decisions**.
+
+---
+---
+
+## License
+
+MIT License — see `LICENSE` for details.
